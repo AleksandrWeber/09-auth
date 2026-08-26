@@ -2,9 +2,29 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import { register } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 import css from "./SignUpPage.module.css";
+
+function getErrorMessage(err: unknown) {
+  if (isAxiosError(err)) {
+    const data = err.response?.data as
+      | { error?: string; message?: string; response?: { message?: string } }
+      | undefined;
+    return (
+      data?.response?.message ||
+      data?.message ||
+      data?.error ||
+      err.message ||
+      "Registration failed. Please try again."
+    );
+  }
+
+  return err instanceof Error
+    ? err.message
+    : "Registration failed. Please try again.";
+}
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -21,8 +41,8 @@ export default function SignUpPage() {
       const user = await register({ email, password });
       setUser(user);
       router.push("/profile");
-    } catch {
-      setError("Registration failed. Please try again.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     }
   };
 

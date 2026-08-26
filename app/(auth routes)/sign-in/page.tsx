@@ -2,9 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import { login } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 import css from "./SignInPage.module.css";
+
+function getErrorMessage(err: unknown) {
+  if (isAxiosError(err)) {
+    const data = err.response?.data as
+      | { error?: string; message?: string; response?: { message?: string } }
+      | undefined;
+    return (
+      data?.response?.message ||
+      data?.message ||
+      data?.error ||
+      err.message ||
+      "Invalid email or password"
+    );
+  }
+
+  return err instanceof Error ? err.message : "Invalid email or password";
+}
 
 export default function SignInPage() {
   const router = useRouter();
@@ -21,8 +39,8 @@ export default function SignInPage() {
       const user = await login({ email, password });
       setUser(user);
       router.push("/profile");
-    } catch {
-      setError("Invalid email or password");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     }
   };
 
