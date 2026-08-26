@@ -1,29 +1,59 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
+import Header from "../components/Header/Header";
+import Footer from "../components/Footer/Footer";
+import TanStackProvider from "../components/TanStackProvider/TanStackProvider";
+import AuthProvider from "../components/AuthProvider/AuthProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const roboto = Roboto({
+  weight: ["400", "700"],
+  variable: "--font-roboto",
+  display: "swap",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Secure Access Flow",
-  description: "Demo auth flow with public and protected routes using a session cookie.",
+  title: "NoteHub",
+  description:
+    "NoteHub is a simple and efficient application for managing personal notes.",
+  openGraph: {
+    title: "NoteHub",
+    description:
+      "NoteHub is a simple and efficient application for managing personal notes.",
+    url: "https://notehub.com",
+    images: [
+      {
+        url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+        width: 1200,
+        height: 630,
+        alt: "NoteHub",
+      },
+    ],
+  },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+  modal,
+}: {
+  children: React.ReactNode;
+  modal: React.ReactNode;
+}) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en">
+      <body className={roboto.variable}>
+        <TanStackProvider>
+          <AuthProvider>
+            <Header />
+            <main>
+              {children}
+              {modal}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </TanStackProvider>
+      </body>
     </html>
   );
 }

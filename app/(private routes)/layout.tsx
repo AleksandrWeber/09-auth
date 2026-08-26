@@ -1,14 +1,7 @@
-import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
+type Props = {
+  children: React.ReactNode;
+};
 
-import { isAuthenticated } from "@/lib/auth";
-
-export default async function ProtectedLayout({ children }: { children: ReactNode }) {
-  const authenticated = await isAuthenticated();
-
-  if (!authenticated) {
-    redirect("/sign-in");
-  }
-
-  return <>{children}</>;
+export default function PrivateLayout({ children }: Props) {
+  return children;
 }

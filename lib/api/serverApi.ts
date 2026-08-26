@@ -1,7 +1,16 @@
 import { cookies } from "next/headers";
+import type { AxiosResponse } from "axios";
 import api from "./api";
 import type { Note } from "../../types/note";
 import type { User } from "../../types/user";
+
+export interface FetchNotesParams {
+  search?: string;
+  tag?: string;
+  page?: number;
+  perPage?: number;
+  sortBy?: string;
+}
 
 async function withServerCookies() {
   const cookieStore = await cookies();
@@ -11,11 +20,13 @@ async function withServerCookies() {
     .join("; ");
 
   return {
-    headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+    headers: {
+      Cookie: cookieHeader,
+    },
   };
 }
 
-export async function fetchNotes(params: Record<string, unknown> = {}) {
+export async function fetchNotes(params: FetchNotesParams = {}) {
   const { headers } = await withServerCookies();
 
   const response = await api.get<{ notes: Note[]; totalPages: number }>("/notes", {
@@ -41,12 +52,8 @@ export async function getMe(): Promise<User> {
   return response.data;
 }
 
-export async function checkSession(): Promise<User | null> {
-  try {
-    const { headers } = await withServerCookies();
-    const response = await api.get<User>("/auth/session", { headers });
-    return response.data ?? null;
-  } catch {
-    return null;
-  }
+export async function checkSession(): Promise<AxiosResponse> {
+  const { headers } = await withServerCookies();
+  const response = await api.get("/auth/session", { headers });
+  return response;
 }

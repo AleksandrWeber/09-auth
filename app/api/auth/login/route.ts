@@ -1,28 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { parseSetCookie } from 'cookie';
+import { isAxiosError } from 'axios';
+import { logErrorResponse } from '../../_utils/utils';
 
-import { AUTH_COOKIE } from "@/proxy";
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const apiRes = await api.post('auth/login', body);
 
-export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => ({}));
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const password = typeof body.password === "string" ? body.password : "";
+    const cookieStore = await cookies();
+    const setCookie = apiRes.headers['set-cookie'];
 
-  if (!email || !password) {
+    if (setCookie) {
+      const cookieArray = Array.isArray(setCookie) ? setCookie : [setCookie];
+      for (const cookieStr of cookieArray) {
+        const parsed = parseSetCookie(cookieStr);
+
+        if (parsed.value) {
+          cookieStore.set(parsed.name, parsed.value, parsed);
+        }
+      }
+
+      return NextResponse.json(apiRes.data, { status: apiRes.status });
+    }
+
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  } catch (error) {
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
+    }
+    logErrorResponse({ message: (error as Error).message });
     return NextResponse.json(
-      { message: "Email and password are required." },
-      { status: 400 },
+      { error: 'Internal Server Error' },
+      { status: 500 }
     );
   }
-
-  const response = NextResponse.json({ ok: true, user: { email } }, { status: 200 });
-
-  response.cookies.set(AUTH_COOKIE, "demo-user-token", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24,
-  });
-
-  return response;
 }

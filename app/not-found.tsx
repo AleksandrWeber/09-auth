@@ -1,14 +1,35 @@
-import Link from 'next/link';
+import type { Metadata } from "next";
+import Link from "next/link";
+import css from "./not-found.module.css";
 
-export default function NotFound() {
+export const metadata: Metadata = {
+  title: "404 - Page not found | NoteHub",
+  description: "Sorry, the page you are looking for does not exist.",
+  openGraph: {
+    title: "404 - Page not found | NoteHub",
+    description: "Sorry, the page you are looking for does not exist.",
+    url: "https://notehub.com/not-found",
+    images: [
+      {
+        url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+        width: 1200,
+        height: 630,
+        alt: "NoteHub 404 - Page not found",
+      },
+    ],
+  },
+};
+
+export default function NotFoundPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6 text-slate-800">
-      <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-600">404</p>
-        <h1 className="mt-3 text-3xl font-bold">Page not found</h1>
-        <p className="mt-2 text-slate-600">The page you are looking for does not exist.</p>
-        <Link href="/" className="mt-6 inline-block rounded-xl bg-sky-600 px-4 py-2 font-medium text-white">
-          Go home
+    <main className={css.main}>
+      <div className={css.container}>
+        <h1 className={css.title}>404 - Page not found</h1>
+        <p className={css.description}>
+          Sorry, the page you are looking for does not exist.
+        </p>
+        <Link href="/" className={css.link}>
+          Back home
         </Link>
       </div>
     </main>

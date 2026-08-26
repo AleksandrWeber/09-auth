@@ -1,108 +1,65 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { register } from "@/lib/api/clientApi";
+import { useAuthStore } from "@/lib/store/authStore";
+import css from "./SignUpPage.module.css";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const setUser = useAuthStore((state) => state.setUser);
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsLoading(true);
+  const handleSubmit = async (formData: FormData) => {
     setError("");
 
-    const formData = new FormData(event.currentTarget);
-    const payload = {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
 
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json().catch(() => ({ message: "Unable to create account." }));
-
-    if (!response.ok) {
-      setError(data.message || "Unable to create account.");
-      setIsLoading(false);
-      return;
+    try {
+      const user = await register({ email, password });
+      setUser(user);
+      router.push("/profile");
+    } catch {
+      setError("Registration failed. Please try again.");
     }
-
-    router.push("/profile");
-    router.refresh();
-  }
+  };
 
   return (
-    <>
-      <div className="mb-6">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-emerald-600">Create account</p>
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">Sign up</h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-700">Full name</span>
+    <main className={css.mainContent}>
+      <h1 className={css.formTitle}>Sign up</h1>
+      <form className={css.form} action={handleSubmit}>
+        <div className={css.formGroup}>
+          <label htmlFor="email">Email</label>
           <input
-            required
-            name="name"
-            type="text"
-            placeholder="Jane Doe"
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-emerald-500 focus:bg-white"
-          />
-        </label>
-
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-700">Email</span>
-          <input
-            required
-            name="email"
+            id="email"
             type="email"
-            placeholder="hello@example.com"
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-emerald-500 focus:bg-white"
-          />
-        </label>
-
-        <label className="block">
-          <span className="mb-2 block text-sm font-medium text-slate-700">Password</span>
-          <input
+            name="email"
+            className={css.input}
             required
-            name="password"
-            type="password"
-            placeholder="Create a password"
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-emerald-500 focus:bg-white"
           />
-        </label>
+        </div>
 
-        {error ? (
-          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-            {error}
-          </p>
-        ) : null}
+        <div className={css.formGroup}>
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            name="password"
+            className={css.input}
+            required
+          />
+        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full rounded-2xl bg-emerald-600 px-4 py-3 font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isLoading ? "Creating account..." : "Create account"}
-        </button>
+        <div className={css.actions}>
+          <button type="submit" className={css.submitButton}>
+            Register
+          </button>
+        </div>
+
+        <p className={css.error}>{error}</p>
       </form>
-
-      <p className="mt-6 text-center text-sm text-slate-600">
-        Already have an account?{" "}
-        <Link href="/sign-in" className="font-semibold text-emerald-600 hover:text-emerald-500">
-          Sign in
-        </Link>
-      </p>
-    </>
+    </main>
   );
 }

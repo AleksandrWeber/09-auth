@@ -1,42 +1,53 @@
-"use client";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { getMe } from "@/lib/api/serverApi";
+import css from "./ProfilePage.module.css";
 
-import { useRouter } from "next/navigation";
+export const metadata: Metadata = {
+  title: "Profile | NoteHub",
+  description: "View and manage your NoteHub user profile.",
+  openGraph: {
+    title: "Profile | NoteHub",
+    description: "View and manage your NoteHub user profile.",
+    url: "https://notehub.com/profile",
+    images: [
+      {
+        url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+        width: 1200,
+        height: 630,
+        alt: "NoteHub Profile",
+      },
+    ],
+  },
+};
 
-export default function ProfilePage() {
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/sign-in");
-    router.refresh();
-  }
+export default async function ProfilePage() {
+  const user = await getMe();
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-12 text-slate-800">
-      <div className="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-lg ring-1 ring-slate-200">
-        <div className="mb-8 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.22em] text-violet-600">Profile</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-900">My account</h1>
-          </div>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-          >
-            Logout
-          </button>
+    <main className={css.mainContent}>
+      <div className={css.profileCard}>
+        <div className={css.header}>
+          <h1 className={css.formTitle}>Profile Page</h1>
+          <Link href="/profile/edit" className={css.editProfileButton}>
+            Edit Profile
+          </Link>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-violet-50 p-4">
-            <p className="text-sm text-violet-800/80">Status</p>
-            <p className="mt-2 text-xl font-semibold text-violet-900">Authenticated</p>
-          </div>
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-sm text-slate-500">Role</p>
-            <p className="mt-2 text-xl font-semibold text-slate-900">Member</p>
-          </div>
+        <div className={css.avatarWrapper}>
+          <Image
+            src={user.avatar}
+            alt="User Avatar"
+            width={120}
+            height={120}
+            className={css.avatar}
+          />
+        </div>
+
+        <div className={css.profileInfo}>
+          <p>Username: {user.username}</p>
+          <p>Email: {user.email}</p>
         </div>
       </div>
     </main>
